@@ -260,7 +260,7 @@ class MainWindow(QtGui.QMainWindow, form_class):
         training["photo"] = training.photo.apply(exposure.equalize_adapthist)
         testImg["files"] = glob.glob(str(self.saveDir.text())+ str(self.saveNames.text()) +"*.png")
         testImg["photo"] = [misc.imread(x) for x in glob.glob(str(self.saveDir.text())+ str(self.saveNames.text()) +"*.png")]
-        testImg["photo"] = training.photo.apply(rgb2gray)
+        testImg["photo"] = testImg.photo.apply(rgb2gray)
         testImg["photo"] = testImg.photo.apply(exposure.equalize_adapthist)
 
 
