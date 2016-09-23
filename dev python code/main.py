@@ -104,7 +104,7 @@ class MainWindow(QtGui.QMainWindow, form_class):
             y = y +squaresize #adjusting centers
             x = x +squaresize #DONT ASK ME WHY
 
-            crop = self.BLUEimage[int(y)-int(squaresize/2) : int(y)+int(squaresize/2), int(x)-int(squaresize/2) : int(x)+int(squaresize/2)]
+            crop = self.THEimage[int(y)-int(squaresize/2) : int(y)+int(squaresize/2), int(x)-int(squaresize/2) : int(x)+int(squaresize/2)]
             io.imsave(str(self.saveDir.text())+ savename +str(number)+'.png', crop)
 
 
@@ -145,7 +145,7 @@ class MainWindow(QtGui.QMainWindow, form_class):
         ax.axis('off')
         for number, blob in enumerate(self.THEblobs):
             y, x, r = blob
-            c = Rectangle((x + int(squaresize/2), y + int(squaresize/2)),squaresize,squaresize, color='0.5', linewidth=2, alpha = 0.3)
+            c = Rectangle((x + int(squaresize/2), y + int(squaresize/2)),squaresize,squaresize, color='r', linewidth=2, alpha = 0.3)
             ax.add_patch(c)
             ax.text(x+squaresize-25,y+ squaresize+25, str(number), color = 'white')
             self.table.setItem(number, 0, QtGui.QTableWidgetItem(str(number)))
@@ -244,7 +244,6 @@ class MainWindow(QtGui.QMainWindow, form_class):
                 elif str(self.table.item(i,1).text()) == 'interfase': interfase += 1
             self.MitoticIndex.setText(str(mitose) + '/'+ str(mitose + interfase))
 
-
     def AutoClassification(self):
         self.save_crops()
         #open images
@@ -257,10 +256,12 @@ class MainWindow(QtGui.QMainWindow, form_class):
             list_.append(df)
         training = pd.concat(list_)
         training["photo"] = training.file.apply(lambda x: misc.imread(str(self.saveDir.text()) + x))
-        #training["photo"] = training.photo.apply(exposure.equalize_adapthist)
+        training["photo"] = training.photo.apply(rgb2gray)
+        training["photo"] = training.photo.apply(exposure.equalize_adapthist)
         testImg["files"] = glob.glob(str(self.saveDir.text())+ str(self.saveNames.text()) +"*.png")
         testImg["photo"] = [misc.imread(x) for x in glob.glob(str(self.saveDir.text())+ str(self.saveNames.text()) +"*.png")]
-        #testImg["photo"] = testImg.photo.apply(exposure.equalize_adapthist)
+        testImg["photo"] = training.photo.apply(rgb2gray)
+        testImg["photo"] = testImg.photo.apply(exposure.equalize_adapthist)
 
 
         # Rotate training images
