@@ -1,17 +1,14 @@
 #!/usr/bin/python3
-import random as rd
 import matplotlib
 matplotlib.use("Qt4Agg", force = True)
 from matplotlib.pyplot import *
-from math import *
 import numpy as np
-import skimage as ski
 from skimage.exposure import adjust_gamma
 from skimage.color import rgb2gray
 from scipy import misc
 import PIL.ImageOps
 style.use('ggplot')
-import sys
+from sys import argv
 import glob
 from PyQt4 import QtCore, QtGui, uic
 #from PyQt4.QtCore import *
@@ -22,7 +19,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt4agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
-from skimage.feature import blob_dog, blob_log, blob_doh
+from skimage.feature import blob_dog
 from skimage import io
 from math import sqrt
 from skimage.color import rgb2gray
@@ -73,8 +70,7 @@ class MainWindow(QtGui.QMainWindow, form_class):
         dirwindow = allDirectoriesWindow(self)
         dirwindow.exec_()
 
-    def removeCell(self):
-        cellnumber = int(self.rmvCellN.text())
+    def removeCell(self, cellnumber):
         self.THEblobs[cellnumber:-1] = self.THEblobs[cellnumber+1:]
         self.THEblobs = self.THEblobs[:-1]
         self.nMarkedCells.setText(str(int(self.nMarkedCells.text() )-1 ) )
@@ -82,7 +78,7 @@ class MainWindow(QtGui.QMainWindow, form_class):
         for i in range(len(self.THEblobs)):
             self.table.setItem(i, 0, QtGui.QTableWidgetItem(str(i)))
         self.ImgAddPatches()
-        self.rmvCellN.setText('')
+
 
     def chooseDirectory(self):
         directory = QtGui.QFileDialog.getExistingDirectory(self)
@@ -132,8 +128,7 @@ class MainWindow(QtGui.QMainWindow, form_class):
             if min(dist) < 800:
                 line = dist.tolist().index(min(dist))
                 print(line)
-                self.rmvCellN.setText(str(line))
-                self.removeCell()
+                self.removeCell(line)
 
 
 
