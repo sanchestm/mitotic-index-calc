@@ -2,7 +2,6 @@
 import matplotlib
 matplotlib.use("Qt4Agg", force = True)
 from matplotlib.pyplot import *
-import numpy as np
 from skimage.exposure import adjust_gamma
 from skimage.color import rgb2gray
 from scipy import misc
@@ -24,7 +23,6 @@ from skimage import io
 from math import sqrt
 from skimage.color import rgb2gray
 from scipy import misc
-import pandas as pd
 from collections import Counter
 from skimage import exposure
 from skimage import transform
@@ -34,7 +32,9 @@ from texture import *
 from sklearn.ensemble import RandomForestClassifier
 from vectorize import *
 from dispersionratio import *
-
+from numpy import array, transpose, vstack, hstack
+from numpy import sum, angle, nan_to_num
+from pandas import DataFrame, read_csv, concat
 
 
 form_class = uic.loadUiType("bycells.ui")[0]
