@@ -358,8 +358,10 @@ class allDirectoriesWindow(QtGui.QDialog, form_class3):
 
     def saveDirectories(self):
         savename = 'directories'
-        directories = np.array([         str(self.allDirs.item(i,0).text()) for i in range(int(self.N_dir.text() ) ) ])
+        directories = np.array([ str(self.allDirs.item(i,0).text())  for i in range(int(self.N_dir.text() ) ) if str(self.allDirs.item(i,0).text()) !=''  ])
+
         dirtable = pd.DataFrame( np.transpose(directories))
+        dirtable = dirtable.dropna(axis ="index")
         dirtable.to_csv(savename,index=True,header=['directory'])
         self.close()
 
