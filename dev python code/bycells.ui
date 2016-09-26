@@ -79,7 +79,7 @@
     <property name="geometry">
      <rect>
       <x>680</x>
-      <y>60</y>
+      <y>180</y>
       <width>161</width>
       <height>41</height>
      </rect>
@@ -268,7 +268,7 @@
     <property name="geometry">
      <rect>
       <x>680</x>
-      <y>160</y>
+      <y>270</y>
       <width>161</width>
       <height>41</height>
      </rect>
@@ -388,7 +388,7 @@
     <property name="geometry">
      <rect>
       <x>680</x>
-      <y>300</y>
+      <y>110</y>
       <width>161</width>
       <height>41</height>
      </rect>
@@ -406,38 +406,6 @@
      </item>
     </layout>
    </widget>
-   <widget class="QPushButton" name="savetiffs">
-    <property name="geometry">
-     <rect>
-      <x>680</x>
-      <y>270</y>
-      <width>161</width>
-      <height>27</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>save single cells</string>
-    </property>
-   </widget>
-   <widget class="QWidget" name="horizontalLayoutWidget_8">
-    <property name="geometry">
-     <rect>
-      <x>680</x>
-      <y>110</y>
-      <width>101</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <layout class="QHBoxLayout" name="horizontalLayout_6">
-     <item>
-      <widget class="QLabel" name="label_2">
-       <property name="text">
-        <string>remove cell:</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
    <widget class="QPushButton" name="autoClassButton">
     <property name="geometry">
      <rect>
@@ -451,33 +419,11 @@
      <string>Auto classify marked cells</string>
     </property>
    </widget>
-   <widget class="QWidget" name="horizontalLayoutWidget_9">
-    <property name="geometry">
-     <rect>
-      <x>770</x>
-      <y>110</y>
-      <width>152</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <layout class="QHBoxLayout" name="horizontalLayout_7">
-     <item>
-      <widget class="QLineEdit" name="rmvCellN"/>
-     </item>
-     <item>
-      <widget class="QPushButton" name="rmvCellbutton">
-       <property name="text">
-        <string>go</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
    <widget class="QWidget" name="horizontalLayoutWidget_10">
     <property name="geometry">
      <rect>
       <x>680</x>
-      <y>360</y>
+      <y>60</y>
       <width>101</width>
       <height>41</height>
      </rect>
@@ -496,7 +442,7 @@
     <property name="geometry">
      <rect>
       <x>750</x>
-      <y>360</y>
+      <y>60</y>
       <width>91</width>
       <height>41</height>
      </rect>
@@ -521,7 +467,7 @@
      <x>0</x>
      <y>0</y>
      <width>847</width>
-     <height>25</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuHelp">

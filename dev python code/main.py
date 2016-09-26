@@ -53,8 +53,6 @@ class MainWindow(QtGui.QMainWindow, form_class):
         self.AddClassified.clicked.connect(self.create_csv)
         self.validatebutton.clicked.connect(self.validateAutoClass)
         self.imageviewbutton.clicked.connect(self.openMainFig)
-        self.savetiffs.clicked.connect(self.save_crops)
-        self.rmvCellbutton.clicked.connect(self.removeCell)
         self.autoClassButton.clicked.connect(self.AutoClassification)
         self.Boxsize.setText("101")
         self.fig = Figure()
