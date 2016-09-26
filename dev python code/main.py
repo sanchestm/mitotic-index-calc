@@ -110,7 +110,7 @@ class MainWindow(QtGui.QMainWindow, form_class):
 
     def onclick(self, event):
         print('button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %(event.button, event.x, event.y, event.xdata, event.ydata))
-        if event.button == 2:
+        if event.button == 3:
             squaresize = int(str(self.Boxsize.text()))
             self.THEblobs =np.array(self.THEblobs.tolist() + [[int(event.ydata - squaresize), int(event.xdata - squaresize), int(str(self.Boxsize.text()))]])
             print(self.THEblobs)
@@ -122,6 +122,14 @@ class MainWindow(QtGui.QMainWindow, form_class):
             self.table.setItem(rowPosition , 2, QtGui.QTableWidgetItem("-"))
             self.nMarkedCells.setText(str(int(self.nMarkedCells.text()) + 1))
             self.ImgAddPatches()
+        elif event.button == 2:
+            print(self.THEblobs[:,0:2])
+            dist = np.sum((self.THEblobs[:,0:2]+101-[event.ydata,event.xdata])**2,1)
+            if min(dist) < 800:
+                line = dist.tolist().index(min(dist))
+                print(line)
+                self.rmvCellN.setText(str(line))
+                self.removeCell()
 
 
 
@@ -337,7 +345,12 @@ class ManualClassifyWindow(QtGui.QDialog, form_class2):
         self.notcell.clicked.connect(self.notcellClass)
         self.unknownButton.clicked.connect(self.unknownClass)
         self.unclassifiableButton.clicked.connect(self.unclassifiableClass)
+        self.saveclose.clicked.connect(self.save_n_close)
         self.goldclasses = []
+
+        basemap1 = QtGui.QPixmap('basetransp.png')
+        basemap2 = basemap1.scaled(321, 261, QtCore.Qt.KeepAspectRatio)
+        self.basecells.setPixmap(basemap2)
 
     def showCell(self):
         if self.index==self.ncells:
