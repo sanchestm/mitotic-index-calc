@@ -42,6 +42,7 @@ from dispersionratio import *
 
 form_class = uic.loadUiType("bycells.ui")[0]
 form_class2 = uic.loadUiType("bycells_classwindow.ui")[0]
+form_class3 = uic.loadUiType("bycells_directories.ui")[0]
 
 class MainWindow(QtGui.QMainWindow, form_class):
     def __init__(self, parent=None):
@@ -63,9 +64,14 @@ class MainWindow(QtGui.QMainWindow, form_class):
         self.table.setColumnCount(3)
         self.layout.addWidget(self.table, 1, 0)
         self.table.setHorizontalHeaderLabels(['index', 'auto class', 'gold class'])
-        self.dirButton.clicked.connect(self.chooseDirecoty)
+        self.dirButton.clicked.connect(self.chooseDirectory)
         self.directory = 'singleCells/'
         self.saveDir.setText('singleCells/')
+        self.dirWindow.clicked.connect(self.openDIRwindow)
+
+    def openDIRwindow(self):
+        dirwindow = allDirectoriesWindow(self)
+        dirwindow.exec_()
 
     def removeCell(self):
         cellnumber = int(self.rmvCellN.text())
@@ -78,7 +84,7 @@ class MainWindow(QtGui.QMainWindow, form_class):
         self.ImgAddPatches()
         self.rmvCellN.setText('')
 
-    def chooseDirecoty(self):
+    def chooseDirectory(self):
         directory = QtGui.QFileDialog.getExistingDirectory(self)
         self.saveDir.setText(str(directory) + '/')
         self.DatabaseSize.setText(str( len(glob.glob(str(self.saveDir.text())+ '*.png') ) ) )
@@ -324,8 +330,38 @@ class MainWindow(QtGui.QMainWindow, form_class):
         self.coloring_types(Y_predict)
 
 
+class allDirectoriesWindow(QtGui.QDialog, form_class3):
+    def __init__(self, parent=None):
+        QtGui.QDialog.__init__(self, parent)
+        self.setupUi(self)
+        self.addDir.clicked.connect(lambda x: self.addDirectory(0) )
+        self.saveDirs.clicked.connect(self.saveDirectories)
+        self.allDirs.setColumnCount(1)
+        self.tableLayout.addWidget(self.allDirs)
+        self.allDirs.setHorizontalHeaderLabels(['directory'])
+        if len( glob.glob('directories') )==1:
+            dirtable = pd.read_csv('directories')
+            for dirj in dirtable.directory.values:
+                self.addDirectory(dirj)
 
+    def addDirectory(self, name):
+        if name == 0:
+            directory = QtGui.QFileDialog.getExistingDirectory(self)
+        else:
+            directory = name
 
+        self.allDirs.setHorizontalHeaderLabels(['directory'])
+        rowPosition = self.allDirs.rowCount()
+        self.allDirs.insertRow(rowPosition)
+        self.allDirs.setItem(rowPosition , 0, QtGui.QTableWidgetItem(str(directory)) )
+        self.N_dir.setText(str(int(self.N_dir.text()) + 1) )
+
+    def saveDirectories(self):
+        savename = 'directories'
+        directories = np.array([         str(self.allDirs.item(i,0).text()) for i in range(int(self.N_dir.text() ) ) ])
+        dirtable = pd.DataFrame( np.transpose(directories))
+        dirtable.to_csv(savename,index=True,header=['directory'])
+        self.close()
 
 class ManualClassifyWindow(QtGui.QDialog, form_class2):
     def __init__(self, parent=None):
