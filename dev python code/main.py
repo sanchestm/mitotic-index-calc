@@ -27,6 +27,7 @@ from collections import Counter
 from skimage import exposure
 from skimage import transform
 from sklearn.decomposition import PCA
+from sklearn.svm import SVC
 from numpy import fft
 from texture import *
 from sklearn.ensemble import RandomForestClassifier
@@ -35,6 +36,11 @@ from dispersionratio import *
 from numpy import array, transpose, vstack, hstack
 from numpy import sum, angle, nan_to_num
 from pandas import DataFrame, read_csv, concat
+from skimage.feature import corner_harris, corner_subpix, corner_peaks
+from skimage.transform import warp, AffineTransform
+
+#coords = corner_peaks(corner_harris(image), min_distance=5)
+#coords_subpix = corner_subpix(image, coords, window_size=13)
 
 
 form_class = uic.loadUiType("bycells.ui")[0]
@@ -277,7 +283,7 @@ class MainWindow(QtGui.QMainWindow, form_class):
             result.photo = result.photo.apply(lambda x: transform.rotate(x, degrees))
             return result
 
-        number_of_rotations = 20
+        number_of_rotations = 50
         orig_training = training.copy()
         for i in [(360./number_of_rotations) * (i+1) for i in range(number_of_rotations)]:
             training = pd.concat((training, rotate(orig_training, i)))
