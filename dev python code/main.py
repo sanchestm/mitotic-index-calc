@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python2
 import matplotlib
 matplotlib.use("Qt4Agg", force = True)
 from matplotlib.pyplot import *
@@ -21,7 +21,6 @@ from matplotlib.backends.backend_qt4agg import (
 from skimage.feature import blob_dog
 from skimage import io
 from math import sqrt
-from skimage.color import rgb2gray
 from scipy import misc
 from collections import Counter
 from skimage import exposure
@@ -38,6 +37,7 @@ from numpy import sum, angle, nan_to_num
 from pandas import DataFrame, read_csv, concat
 from subprocess import check_output
 from time import time
+from image_rec import *
 
 
 from skimage.feature import corner_harris, corner_subpix, corner_peaks
@@ -276,28 +276,29 @@ class MainWindow(QtGui.QMainWindow, form_class):
             list_.append(df)
         training = pd.concat(list_)
         training["file"] = training.file.apply(lambda x: str(self.saveDir.text()) + x)
-        training["photo"] = training.file.apply(lambda x: misc.imread(x))
-        training["photo"] = training.photo.apply(rgb2gray)
-        training["photo"] = training.photo.apply(exposure.equalize_adapthist)
+        training["photorgb"] = training.file.apply(lambda x: misc.imread(x))
+        training["photo"] = training.photorgb.apply(rgb2gray)
+        #training["photo"] = training.photo.apply(exposure.equalize_adapthist)
 
         testImg["file"] = glob.glob(str(self.saveDir.text())+ str(self.saveNames.text()) +"*.png")
-        testImg["photo"] = testImg.file.apply(lambda x: misc.imread(x))
-        testImg["photo"] = testImg.photo.apply(rgb2gray)
-        testImg["photo"] = testImg.photo.apply(exposure.equalize_adapthist)
+        testImg["photorgb"] = testImg.file.apply(lambda x: misc.imread(x))
+        testImg["photo"] = testImg.photorgb.apply(rgb2gray)
+        #testImg["photo"] = testImg.photo.apply(exposure.equalize_adapthist)
 
-        #testImg["photo"] = [misc.imread(x) for x in glob.glob(str(self.saveDir.text())+ str(self.saveNames.text()) +"*.png")]
 
 
         # Rotate training images
         def rotate(df, degrees):
             result = df.copy()
             result.photo = result.photo.apply(lambda x: transform.rotate(x, degrees))
+            result.photorgb = result.photorgb.apply(lambda x: transform.rotate(x, degrees))
             return result
 
-        number_of_rotations = 20
+        number_of_rotations = 3 ######################################################################change afterwards
         orig_training = training.copy()
         for i in [(360./number_of_rotations) * (i+1) for i in range(number_of_rotations)]:
             training = pd.concat((training, rotate(orig_training, i)))
+
 
         # Initialize features with texture values
         b4time = time()
@@ -317,23 +318,25 @@ class MainWindow(QtGui.QMainWindow, form_class):
         print("dispratio: "+ str(aftertime - b4time)+ "\n")
 
 
-        #Add feature img_to_graph to features
-        b4time = time()
-        training["img2graph"] = training.photo.apply(lambda x: img_to_graph(x, return_as=np.ndarray))
-        train_feats = np.hstack( ( train_feats, np.array([x for x in training["img2graph"].values]).reshape(-1,1) ) )
-        testImg["img2graph"] = testImg.photo.apply(lambda x: img_to_graph(x, return_as=np.ndarray))
-        testImg_feats  = np.hstack( ( testImg_feats, np.array([x for x in testImg["img2graph"].values]).reshape(-1,1) ) )
-        aftertime = time()
-        print("img_to_graph: "+ str(aftertime - b4time)+ "\n")
-
         #Add SimpleCV features ( HueHistogramFeatureExtractor, HaarLikeFeatureExtractor, MorphologyFeatureExtractor)
+        b4time = time()
+        training["SCVfeatures"] = training.photorgb.apply(getExtractors)
+        train_feats = np.hstack( ( train_feats, np.array([x for x in training["SCVfeatures"].values]).reshape(-1,1) ) )
+        testImg["SCVfeatures"]  = training.photorgb.apply(getExtractors)
+        testImg_feats = np.hstack( ( train_feats, np.array([x for x in training["SCVfeatures"].values]).reshape(-1,1) ) )
+        aftertime = time()
+        print("SimpleCV "+ str(aftertime - b4time)+ "\n")
+
+        #Add feature img_to_graph to features
         #b4time = time()
-        #training["SCVfeatures"] = training.file.apply(lambda x: eval(check_output(['python2', 'image_rec.py', x])[:-1]) )
-        #train_feats = np.hstack( ( train_feats, np.array([x for x in training["SCVfeatures"].values]).reshape(-1,1) ) )
-        #testImg["SCVfeatures"]  = training.file.apply(lambda x: eval(check_output(['python2', 'image_rec.py', x])[:-1]) )
-        #testImg_feats = np.hstack( ( train_feats, np.array([x for x in training["SCVfeatures"].values]).reshape(-1,1) ) )
+        #training["img2graph"] = training.photo.apply(lambda x: img_to_graph(x))
+        #train_feats = np.hstack( ( train_feats, np.array([x for x in training["img2graph"].values]).reshape(-1,1) ) )
+        #testImg["img2graph"] = testImg.photo.apply(lambda x: img_to_graph(x))
+        #testImg_feats  = np.hstack( ( testImg_feats, np.array([x for x in testImg["img2graph"].values]).reshape(-1,1) ) )
         #aftertime = time()
-        #print("SimpleCV "+ str(aftertime - b4time)+ "\n")
+        #print("img_to_graph: "+ str(aftertime - b4time)+ "\n")
+
+
 
         # Apply FFT to photos (does NOT add to features yet)
         b4time = time()

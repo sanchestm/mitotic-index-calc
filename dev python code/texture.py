@@ -27,6 +27,7 @@ def texture(img):
 
 
 def texture2(image):
-    patch = image[30:70][30:70]
+    img_size = np.shape(image)[0]
+    patch = image[int(img_size/2-img_size/4):int(img_size/2+img_size/4)][int(img_size/2-img_size/4):int(img_size/2+img_size/4)]
     glcm  = greycomatrix(patch,[5],[0], 256)
     return [greycoprops(glcm, 'dissimilarity')[0,0], greycoprops(glcm, 'correlation')[0,0]]
