@@ -23,7 +23,6 @@ from sklearn.metrics import roc_curve
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import fbeta_score, make_scorer
 from learning_curves import *
-import sys
 
 def sizeMatch(array):
     ash=array.shape
@@ -39,7 +38,7 @@ def norm_rgb2gray(image):
         if image.shape[2] == 3: return rgb2gray(image)
     except: return rgb2gray(image)*0.0721
 
-def AutoClassification(trainpercentage, mode):
+def AutoClassification(trainpercentage):
     #open images
     directories=[r"C:/Users/Estêvão/Documents/Scripts/Python Scripts/cellsData/ClassAna",r"C:/Users/Estêvão/Documents/Scripts/Python Scripts/cellsData/Células classificadas - ZeH/Curva de crescimento/0dias/08-07-2016 (Menk)",r"C:/Users/Estêvão/Documents/Scripts/Python Scripts/cellsData/Células classificadas - ZeH/IM/16-09",r"C:/Users/Estêvão/Documents/Scripts/Python Scripts/cellsData/Células classificadas - ZeH/Sincronização jul2016/IM/31-08-2016 (Menck)"]
     #directories=[r"C:/Users/Estêvão/Documents/Scripts/Python Scripts/cellsData/ClassAna"]
@@ -61,46 +60,5 @@ def AutoClassification(trainpercentage, mode):
     y = features['class'].values
     X_train,X_test,y_train,y_test = train_test_split(features,y, train_size=trainpercentage, stratify=y)
 
-
-    ####################### GRID SEARCH
-    scorer = make_scorer(lambda yt, yp: fbeta_score(yt, yp, beta=1.5,pos_label='mitose'))
-
-    #this below is still on debug phase
-    clf = cell_classifier(min_samples=300, n_features=20,n_rotations=10)
-
-    #Tuning hyperparameters
-    #param_grid = {'min_samples':[2,5,10,25],'n_features':[5,10,15,20,25]}
-    #param_grid={'min_samples':[2,5]} #testing purposes
-    #clfgrid = GridSearchCV(clf, param_grid, scoring=scorer,cv=5)
-    #clfgrid.fit(X_train,y_train)
-    #print(pd.DataFrame(clfgrid.cv_results_))
-    #clf=clfgrid.best_estimator_
-    min_samples = 40
-    nfeat=20
-    if mode=='learningcurve':
-        print('Preparando curvas de aprendizado')
-        plot_learning_curve(clf, 'Samp'+str(min_samples)+'feat'+str(nfeat), X_train, y_train, cv=5, train_sizes=np.linspace(.5, 1, 5),scoring=scorer)
-        plt.show()
-        return
-    elif mode =='fit':
-        print('Fitando o modelo')
-        clf.fit(X_train,y_train)
-    elif mode =='roc':
-        print('Preparando curva ROC')
-        clf.fit(X_train,y_train)
-        yproba = clf.predict_proba(X_test)[:,1]
-        fpr,tpr, thr = roc_curve(y_test, yproba,pos_label='mitose')
-        plt.plot(fpr,tpr)
-        plt.xlabel("False Positives (1 - Precision)")
-        plt.ylabel("True Positives (Recall)")
-        plt.show()
-
-    tpred = clf.predict(X_train)
-    ypred = clf.predict(X_test)
-    #Ypredict= yproba>0.192; y_test= y_test=='mitose'
-    print(confusion_matrix(y_test, ypred))
-    print('Train Score : ' + str(fbeta_score(y_train, tpred, beta=1.5,pos_label='mitose')))
-    print('Test Score : '+ str(fbeta_score(y_test, ypred, beta=1.5,pos_label='mitose')))
-
 if __name__ == "__main__":
-    AutoClassification(.8, sys.argv[1])
+    AutoClassification(.8)
