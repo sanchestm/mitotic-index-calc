@@ -27,17 +27,12 @@ from skimage import exposure
 from skimage import transform
 from sklearn.decomposition import PCA
 from sklearn.svm import SVC
-from numpy import fft
-from texture import *
 from sklearn.ensemble import RandomForestClassifier
-from vectorize import *
-from dispersionratio import *
 from numpy import array, transpose, vstack, hstack
 from numpy import sum, angle, nan_to_num
 from pandas import DataFrame, read_csv, concat
 from subprocess import check_output
 from time import time
-from image_rec import *
 
 
 from skimage.feature import corner_harris, corner_subpix, corner_peaks
@@ -274,100 +269,6 @@ class MainWindow(QtGui.QMainWindow, form_class):
         for file_ in allFiles:
             df = pd.read_csv(file_,index_col=None, header=0)
             list_.append(df)
-        training = pd.concat(list_)
-        training["file"] = training.file.apply(lambda x: str(self.saveDir.text()) + x)
-        training["photorgb"] = training.file.apply(lambda x: misc.imread(x))
-        training["photo"] = training.photorgb.apply(rgb2gray)
-        #training["photo"] = training.photo.apply(exposure.equalize_adapthist)
-
-        testImg["file"] = glob.glob(str(self.saveDir.text())+ str(self.saveNames.text()) +"*.png")
-        testImg["photorgb"] = testImg.file.apply(lambda x: misc.imread(x))
-        testImg["photo"] = testImg.photorgb.apply(rgb2gray)
-        #testImg["photo"] = testImg.photo.apply(exposure.equalize_adapthist)
-
-
-
-        # Rotate training images
-        def rotate(df, degrees):
-            result = df.copy()
-            result.photo = result.photo.apply(lambda x: transform.rotate(x, degrees))
-            result.photorgb = result.photorgb.apply(lambda x: transform.rotate(x, degrees))
-            return result
-
-        number_of_rotations = 3 ######################################################################change afterwards
-        orig_training = training.copy()
-        for i in [(360./number_of_rotations) * (i+1) for i in range(number_of_rotations)]:
-            training = pd.concat((training, rotate(orig_training, i)))
-
-
-        # Initialize features with texture values
-        b4time = time()
-        train_feats = np.array([x for x in training.photo.apply(texture).values])
-        Y_training = training["class"].values
-        testImg_feats = np.array([x for x in testImg.photo.apply(texture).values])
-        aftertime = time()
-        print("texture: "+ str(aftertime - b4time)+ "\n")
-
-        # Add dispersion ratios to features
-        b4time = time()
-        training["dispersion"] = training.photo.apply(dispersionratio)
-        train_feats = np.hstack( ( train_feats, np.array([x for x in training["dispersion"].values]).reshape(-1,1) ) )
-        testImg["dispersion"] = testImg.photo.apply(dispersionratio)
-        testImg_feats  = np.hstack( ( testImg_feats, np.array([x for x in testImg["dispersion"].values]).reshape(-1,1) ) )
-        aftertime = time()
-        print("dispratio: "+ str(aftertime - b4time)+ "\n")
-
-
-        #Add SimpleCV features ( HueHistogramFeatureExtractor, HaarLikeFeatureExtractor, MorphologyFeatureExtractor)
-        b4time = time()
-        training["SCVfeatures"] = training.photorgb.apply(getExtractors)
-        train_feats = np.hstack( ( train_feats, np.array([x for x in training["SCVfeatures"].values]).reshape(-1,1) ) )
-        testImg["SCVfeatures"]  = training.photorgb.apply(getExtractors)
-        testImg_feats = np.hstack( ( train_feats, np.array([x for x in training["SCVfeatures"].values]).reshape(-1,1) ) )
-        aftertime = time()
-        print("SimpleCV "+ str(aftertime - b4time)+ "\n")
-
-        #Add feature img_to_graph to features
-        #b4time = time()
-        #training["img2graph"] = training.photo.apply(lambda x: img_to_graph(x))
-        #train_feats = np.hstack( ( train_feats, np.array([x for x in training["img2graph"].values]).reshape(-1,1) ) )
-        #testImg["img2graph"] = testImg.photo.apply(lambda x: img_to_graph(x))
-        #testImg_feats  = np.hstack( ( testImg_feats, np.array([x for x in testImg["img2graph"].values]).reshape(-1,1) ) )
-        #aftertime = time()
-        #print("img_to_graph: "+ str(aftertime - b4time)+ "\n")
-
-
-
-        # Apply FFT to photos (does NOT add to features yet)
-        b4time = time()
-        training["FFT"] = training.photo.apply(fft.fft2)
-        training["FFT"] = training.FFT.apply(abs)
-        training["Phase"] = training.FFT.apply(np.angle)
-        testImg["FFT"] = testImg.photo.apply(fft.fft2)
-        testImg["FFT"] = testImg.FFT.apply(abs)
-        testImg["Phase"] = testImg.FFT.apply(np.angle)
-        aftertime = time()
-        print("fft: "+ str(aftertime - b4time)+ "\n")
-
-        # Dimensionality reduction on the FFTs
-        pca = PCA(n_components = 15)
-        pcb = PCA(n_components = 15)
-        fabsPCA = pca.fit(vectorize(training["FFT"]))
-        fphiPCA = pcb.fit(vectorize(training["Phase"]))
-        print("pca ")
-
-        #Adding ffts to feature set
-        train_feats_final = np.hstack( ( train_feats, fphiPCA.transform(vectorize(training["Phase"])), fabsPCA.transform(vectorize(training["FFT"])) ) )
-        testImg_feats_final = np.hstack( ( testImg_feats, fphiPCA.transform(vectorize(testImg["Phase"])), fabsPCA.transform(vectorize(testImg["FFT"])) ) )
-
-        #train_feats_final = normalize_columns(train_feats_final)
-        #testImg_feats_final = normalize_columns(testImg_feats_final)
-        clf = RandomForestClassifier(n_estimators = 27)
-        print(len(train_feats_final), len(Y_training))
-        clf.fit(np.nan_to_num(train_feats_final), np.nan_to_num(Y_training)) #np.nan_to_num() if necessary
-        Y_predict = clf.predict(np.nan_to_num(testImg_feats_final))
-        for number, cellclass in enumerate(Y_predict):
-            self.table.setItem(number , 1, QtGui.QTableWidgetItem(str(cellclass)))
 
         self.coloring_types(Y_predict)
 
